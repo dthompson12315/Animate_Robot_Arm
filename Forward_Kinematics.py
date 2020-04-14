@@ -42,14 +42,17 @@ def main():
     degree = 0
     reachedEnd = False
 
-    # for theta in range(0, 91):
-    #     rate(10)
-    #     radian = vp.radians(1)
+    for theta in range(0,91):
+        radian = vp.radians(1)
+        # print(radian)
+        rate(10)
+        arm3.rotate(angle=radian, axis=vector(1, 0, 0))
+
+        # effector.pos
+
     #
-    #     arm2.rotate(angle=radian, axis=vector(1, 0, 0))
-    #
-    while not reachedEnd:
-        rate(1)
+    # while not reachedEnd:
+    #     rate(1)
         #
         #
         # radian = vp.radians(degree)
