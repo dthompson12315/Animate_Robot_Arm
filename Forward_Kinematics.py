@@ -33,7 +33,7 @@ def main():
                     forward=vector(0.5,-2,0),
                     fov=70)
 
-    floor = box(pos=vector(0, 0, 0), \
+    floor = box(pos=vector(0, 0, 0),
                size=vector(s3, thk, s3),
                color=color.gray(1))
 
@@ -75,27 +75,37 @@ def main():
     reachedEnd = False
 
     Ts = []
-    P1_P2 = createAdjacentTx_Ty(vp.radians(0), base.length + 1)
-    P2_P3 = createAdjacentTx_Ty(vp.radians(90), arm1.length)
-    P3_P4 = createAdjacentTx_Ty(vp.radians(0), arm2.length)
+    P1_P2 = createAdjacentTx_Ty(vp.radians(45), base.length + 1)
+    P2_P3 = createAdjacentTx_Ty(vp.radians(45), arm1.length)
+    P3_P4 = createAdjacentTx_Ty(vp.radians(45), arm2.length)
     P4_P5 = createAdjacentTx_Ty(vp.radians(0), arm3.length)
 
-    Ts.append(P0_P1)
-    Ts.append(P1_P2)
-    Ts.append(P2_P3)
-    Ts.append(P3_P4)
-    Ts.append(P4_P5)
+    # P1_P2 = np.array([[1, 0, 6], 
+    #                   [0, 1, 0],
+    #                   [0, 0, 1]])
+    # P2_P3 = np.array([[0, -1, 12.9],
+    #                   [1, 0, 0],
+    #                   [0, 0, 1]])
+    # P3_P4 = np.array([[1, 0, 6.5],
+    #                   [0, 1, 0],
+    #                   [0, 0, 1]])
+    # P4_P5 = np.array([[1, 0, 6.5],
+    #                   [0, 1, 0],
+    #                   [0, 0, 1]])
 
-    P0_5 = end_effector(Ts)
+
+    P0_5 = end_effector(P0_P1, P1_P2, P2_P3, P3_P4, P4_P5)
+
+    for T in Ts:
+        print(T)
     
     print(P0_5)
-
-
+    
     for theta in range(0,90):
         rate(5)
-        degree1 = 1
-        degree2 = 0
-        degree3 = 0
+        degree1 = 0.5
+        degree2 = 0.5
+        degree3 = 0.5
 
         theta1 = degree1
         theta2 = theta1 + degree2
@@ -133,18 +143,21 @@ def main():
     #     # degree = degree + 1
     #     # time.sleep(1)
 
-    #pass in theta between two frames in degrees, and length of arm between the frames
+
+#pass in theta between two frames in degrees, and length of arm between the frames
 def createAdjacentTx_Ty(theta, length):
-    Tx_Ty = np.array([[np.cos(theta), -np.sin(theta), 0],
-                      [np.sin(theta), np.cos(theta), length],
+    #used roatation matrix for clockwise rotations
+    Tx_Ty = np.array([[np.cos(theta), np.sin(theta), 0],
+                      [-np.sin(theta), np.cos(theta), length],
                       [0, 0, 1]])
     return Tx_Ty
 
-def end_effector(Ts):
-    T0_2 = np.matmul(Ts[0], Ts[1])
-    T0_3 = np.matmul(T0_2, Ts[2])
-    T0_4 = np.matmul(T0_3, Ts[3])
-    T0_5 = np.matmul(T0_4, Ts[4])
+def end_effector(P0_P1, P1_P2, P2_P3, P3_P4, P4_P5):
+    # T0_2 = np.matmul(Ts[0], Ts[1])
+    # T0_3 = np.matmul(T0_2, Ts[2])
+    # T0_4 = np.matmul(T0_3, Ts[3])
+    # T0_5 = np.matmul(T0_4, Ts[4])
+    T0_5 = P0_P1.dot(P1_P2).dot(P2_P3).dot(P3_P4).dot(P4_P5)
 
     return T0_5
 
