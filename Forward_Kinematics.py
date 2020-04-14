@@ -19,6 +19,22 @@ def main():
     end = vector(side, 1, side)
     zero = vector(0,20, 0)
 
+    P0_P1 = np.array([[1, 0, 50.0],
+                      [0, 1, 50.0],
+                      [0, 0, 1]])
+    print(P0_P1)
+
+    #pass in theta between two frames in degrees, and length of arm between the frames
+    def createTx_Ty(theta, length):
+        Tx_Ty = np.array([[np.cos(theta), -np.sin(theta), 0],
+                          [np.sin(theta), np.cos(theta), length],
+                          [0, 0, 1]])
+        return Tx_Ty
+    
+    print(createTx_Ty(90, 5))
+    
+
+
     scene2 = canvas(title='Collision Avoidance',
                     width=1800,
                     height=900,
