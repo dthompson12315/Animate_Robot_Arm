@@ -80,68 +80,36 @@ def main():
     P3_P4 = createAdjacentTx_Ty(vp.radians(45), arm2.length)
     P4_P5 = createAdjacentTx_Ty(vp.radians(0), arm3.length)
 
-    # P1_P2 = np.array([[1, 0, 6], 
-    #                   [0, 1, 0],
-    #                   [0, 0, 1]])
-    # P2_P3 = np.array([[0, -1, 12.9],
-    #                   [1, 0, 0],
-    #                   [0, 0, 1]])
-    # P3_P4 = np.array([[1, 0, 6.5],
-    #                   [0, 1, 0],
-    #                   [0, 0, 1]])
-    # P4_P5 = np.array([[1, 0, 6.5],
-    #                   [0, 1, 0],
-    #                   [0, 0, 1]])
 
 
     P0_5 = end_effector(P0_P1, P1_P2, P2_P3, P3_P4, P4_P5)
 
-    for T in Ts:
-        print(T)
     
-    print(P0_5)
-    
-    for theta in range(0,90):
-        rate(5)
-        degree1 = 0.5
-        degree2 = 0.5
-        degree3 = 0.5
-
-        theta1 = degree1
-        theta2 = theta1 + degree2
-        theta3 = theta2 + degree3
+    # print(P0_5)
+    time.sleep(5)
+    for theta in range(0,1):
+        rate(10)
 
 
-        radian1 = vp.radians(theta1)
-        radian2 = vp.radians(theta2)
-        radian3 = vp.radians(theta3)
+        joint2.pos = vector(0,P0_5[2][1][2],P0_5[2][0][2])
 
 
-        arm1.rotate(angle=radian1, axis=vector(1, 0, 0))
-        joint2.pos = arm1.axis + arm1.pos
+        joint3.pos = vector(0,P0_5[3][1][2],P0_5[3][0][2])
 
-        arm2.pos = joint2.pos
-        arm2.rotate(angle=radian2, axis=vector(1, 0, 0))
 
-        joint3.pos = arm2.axis + arm2.pos
-        arm3.pos = joint3.pos
+        effector.pos = vector(0,P0_5[4][1][2],P0_5[4][0][2])
 
-        arm3.rotate(angle=radian3, axis=vector(1, 0, 0))
-        effector.pos = arm3.axis + arm3.pos
+
+
+
+
+
+
+
+
         
-    print(effector.pos)
-    
-    # while not reachedEnd:
-    #     rate(1)
-    #     #
-    #     #
-    #     # radian = vp.radians(degree)
-    #     # print(radian)
-    #     #
-    #     # arm2.rotate(angle=radian, axis=vector(1,0,0))
-    #     #
-    #     # degree = degree + 1
-    #     # time.sleep(1)
+    # print(effector.pos)
+
 
 
 #pass in theta between two frames in degrees, and length of arm between the frames
@@ -153,13 +121,13 @@ def createAdjacentTx_Ty(theta, length):
     return Tx_Ty
 
 def end_effector(P0_P1, P1_P2, P2_P3, P3_P4, P4_P5):
-    # T0_2 = np.matmul(Ts[0], Ts[1])
-    # T0_3 = np.matmul(T0_2, Ts[2])
-    # T0_4 = np.matmul(T0_3, Ts[3])
-    # T0_5 = np.matmul(T0_4, Ts[4])
-    T0_5 = P0_P1.dot(P1_P2).dot(P2_P3).dot(P3_P4).dot(P4_P5)
+    T0_2 = np.matmul(P0_P1, P1_P2)
+    T0_3 = np.matmul(T0_2, P2_P3)
+    T0_4 = np.matmul(T0_3, P3_P4)
+    T0_5 = np.matmul(T0_4,  P4_P5)
+    # T0_5 = P0_P1.dot(P1_P2).dot(P2_P3).dot(P3_P4).dot(P4_P5)
 
-    return T0_5
+    return [P0_P1, T0_2, T0_3,T0_4, T0_5]
 
 if __name__ == '__main__':
     main()
