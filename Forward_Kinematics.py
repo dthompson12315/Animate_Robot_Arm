@@ -55,7 +55,7 @@ def main():
         arm1.rotate(angle=radian1, axis=vector(1, 0, 0))
         joint2.pos = arm1.axis + arm1.pos
 
-        arm2.pos = joint3.pos
+        arm2.pos = joint2.pos
         arm2.rotate(angle=radian2, axis=vector(1, 0, 0))
         joint3.pos = arm2.axis + arm2.pos
 
