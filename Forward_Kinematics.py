@@ -42,12 +42,24 @@ def main():
     degree = 0
     reachedEnd = False
 
-    for theta in range(0,91):
-        radian = vp.radians(1)
-        # print(radian)
-        rate(10)
-        arm3.rotate(angle=radian, axis=vector(1, 0, 0))
+    time.sleep(5)
 
+    for theta in range(0,91):
+        rate(10)
+
+        radian1 = vp.radians(1)
+        radian2 = vp.radians(1.5)
+        # print(radian)
+
+
+        arm2.rotate(angle=radian1, axis=vector(1, 0, 0))
+        joint3.pos = arm2.axis + arm2.pos
+
+        arm3.pos = joint3.pos
+
+        arm3.rotate(angle=radian2, axis=vector(1, 0, 0))
+        effector.pos = arm3.axis + arm3.pos
+        print(arm3.axis)
         # effector.pos
 
     #
