@@ -31,7 +31,10 @@ def main():
     arm2 = cylinder(axis=vector(0,1,0), pos=vector(0,joint2.pos.y,0), color=color.red, length=5 + joint2.radius)
 
     joint3 = sphere(pos=vector(0,arm2.pos.y + arm2.length,0), radius=1.5, color=color.white)
-    arm3 = cylinder()
+    arm3 = cylinder(axis=vector(0,1,0), pos=vector(0,joint3.pos.y,0), color=color.red, length=5 + joint3.radius)
+
+    effector = sphere(pos=vector(0,arm3.pos.y + arm3.length,0), radius=0.5,
+                      color=color.white, make_trail=True, retain=400)
 
 
     dt = 0.001
@@ -45,16 +48,16 @@ def main():
     #
     #     arm2.rotate(angle=radian, axis=vector(1, 0, 0))
     #
-    # while not reachedEnd:
-    #     rate(1)
-    #     #
-    #     #
-    #     # radian = vp.radians(degree)
-    #     # print(radian)
-    #     #
-    #     # arm2.rotate(angle=radian, axis=vector(1,0,0))
-    #     #
-    #     # degree = degree + 1
-    #     # time.sleep(1)
+    while not reachedEnd:
+        rate(1)
+        #
+        #
+        # radian = vp.radians(degree)
+        # print(radian)
+        #
+        # arm2.rotate(angle=radian, axis=vector(1,0,0))
+        #
+        # degree = degree + 1
+        # time.sleep(1)
 if __name__ == '__main__':
     main()
