@@ -22,7 +22,7 @@ def main():
     #transformation matric between frames 0 and 1.
     #hardcoded beacuse it is the only transformation with an x translation
     P0_P1 = np.array([[1, 0, 0],
-                      [0, 1, 0],
+                      [0, 1, 0.3],
                       [0, 0, 1]])
 
     scene2 = canvas(title='Collision Avoidance',
@@ -75,10 +75,10 @@ def main():
     reachedEnd = False
 
     Ts = []
-    P1_P2 = createAdjacentTx_Ty(30, base.length)
-    P2_P3 = createAdjacentTx_Ty(30, arm1.length)
-    P3_P4 = createAdjacentTx_Ty(30, arm2.length)
-    P4_P5 = createAdjacentTx_Ty(30, arm3.length)
+    P1_P2 = createAdjacentTx_Ty(vp.radians(0), base.length + 1)
+    P2_P3 = createAdjacentTx_Ty(vp.radians(90), arm1.length)
+    P3_P4 = createAdjacentTx_Ty(vp.radians(0), arm2.length)
+    P4_P5 = createAdjacentTx_Ty(vp.radians(0), arm3.length)
 
     Ts.append(P0_P1)
     Ts.append(P1_P2)
@@ -93,9 +93,9 @@ def main():
 
     for theta in range(0,90):
         rate(5)
-        degree1 = 0.33
-        degree2 = 0.33
-        degree3 = 0.33
+        degree1 = 1
+        degree2 = 0
+        degree3 = 0
 
         theta1 = degree1
         theta2 = theta1 + degree2
@@ -118,7 +118,8 @@ def main():
 
         arm3.rotate(angle=radian3, axis=vector(1, 0, 0))
         effector.pos = arm3.axis + arm3.pos
-        print(effector.pos)
+        
+    print(effector.pos)
     
     # while not reachedEnd:
     #     rate(1)
@@ -140,7 +141,11 @@ def createAdjacentTx_Ty(theta, length):
     return Tx_Ty
 
 def end_effector(Ts):
-    T0_5 = Ts[0].dot(Ts[1]).dot(Ts[2]).dot(Ts[3]).dot(Ts[4])
+    T0_2 = np.matmul(Ts[0], Ts[1])
+    T0_3 = np.matmul(T0_2, Ts[2])
+    T0_4 = np.matmul(T0_3, Ts[3])
+    T0_5 = np.matmul(T0_4, Ts[4])
+
     return T0_5
 
 if __name__ == '__main__':
