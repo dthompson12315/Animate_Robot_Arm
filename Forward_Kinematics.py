@@ -122,7 +122,7 @@ def end_effector(P0_P1, P1_P2, P2_P3, P3_P4, P4_P5):
     T0_4 = np.matmul(T0_3, P3_P4)
     T0_5 = np.matmul(T0_4, P4_P5)
 
-    return [P0_P1, T0_2, T0_3, T0_4, T0_5]
+    return P0_P1, T0_2, T0_3, T0_4, T0_5
 
 
 if __name__ == '__main__':
