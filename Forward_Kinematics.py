@@ -1,7 +1,12 @@
+"""
+    Brandon Sawyer and Dylan Thompson
+    CSE 4280
+    Forward Kinematics
+    02/02/2018
+"""
+
 import vpython as vp
 from vpython import canvas, vector, color, box, sphere, rate, norm, cylinder
-import random
-import math
 import time
 import numpy as np
 
@@ -10,13 +15,7 @@ def main():
     side = 50.0
     thk = 0.3
 
-    rad = 5
-    leng = rad * 5
-    ax = vector(0, 1, 0)
     s3 = 2 * side + thk
-
-    start = vector(-side, 1, -side)
-    end = vector(side, 1, side)
     zero = vector(0, 20, 0)
 
     # transformation matric between frames 0 and 1.
@@ -73,25 +72,26 @@ def main():
                       # retain=400
                       )
 
-    degree = 0
-    reachedEnd = False
 
-    Ts = []
     P1_P2 = createAdjacentTx_Ty(vp.radians(90), base.length + 1)
-    P2_P3 = createAdjacentTx_Ty(vp.radians(45), arm1.length)
+    P2_P3 = createAdjacentTx_Ty(vp.radians(-45), arm1.length)
     P3_P4 = createAdjacentTx_Ty(vp.radians(45), arm2.length)
     P4_P5 = createAdjacentTx_Ty(vp.radians(0), arm3.length)
 
     P0_1, P0_2, P0_3, P0_4, P0_5 = end_effector(P0_P1, P1_P2, P2_P3, P3_P4, P4_P5)
 
-    # print(P0_5)
+
     time.sleep(5)
     for theta in range(0, 1):
         rate(10)
 
-        radian1 = vp.radians(45)
-        radian2 = vp.radians(90)
-        radian3 = vp.radians(135)
+        ang1 = 90
+        ang2 = ang1 - 45
+        ang3 = ang2 + 45
+
+        radian1 = vp.radians(ang1)
+        radian2 = vp.radians(ang2)
+        radian3 = vp.radians(ang3)
 
         arm1.rotate(angle=radian1, axis=vector(1, 0, 0))
 
@@ -105,7 +105,6 @@ def main():
 
         effector.pos = vector(0, P0_5[1][2], P0_5[0][2])
 
-    # print(effector.pos)
 
 
 # pass in theta between two frames in degrees, and length of arm between the frames
@@ -122,7 +121,6 @@ def end_effector(P0_P1, P1_P2, P2_P3, P3_P4, P4_P5):
     T0_3 = np.matmul(T0_2, P2_P3)
     T0_4 = np.matmul(T0_3, P3_P4)
     T0_5 = np.matmul(T0_4, P4_P5)
-    # T0_5 = P0_P1.dot(P1_P2).dot(P2_P3).dot(P3_P4).dot(P4_P5)
 
     return [P0_P1, T0_2, T0_3, T0_4, T0_5]
 
