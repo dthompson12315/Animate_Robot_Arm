@@ -68,31 +68,42 @@ def main():
 
     effector = sphere(pos=vector(0, arm3.pos.y + arm3.length, 0),
                       radius=0.5,
-                      color=color.white,
-                      make_trail=True,
-                      retain=400)
+                      color=color.white # ,
+                      # make_trail=True,
+                      # retain=400
+                      )
 
     degree = 0
     reachedEnd = False
 
     Ts = []
-    P1_P2 = createAdjacentTx_Ty(vp.radians(45), base.length + 1)
+    P1_P2 = createAdjacentTx_Ty(vp.radians(90), base.length + 1)
     P2_P3 = createAdjacentTx_Ty(vp.radians(45), arm1.length)
     P3_P4 = createAdjacentTx_Ty(vp.radians(45), arm2.length)
     P4_P5 = createAdjacentTx_Ty(vp.radians(0), arm3.length)
 
-    P0_5 = end_effector(P0_P1, P1_P2, P2_P3, P3_P4, P4_P5)
+    P0_1, P0_2, P0_3, P0_4, P0_5 = end_effector(P0_P1, P1_P2, P2_P3, P3_P4, P4_P5)
 
     # print(P0_5)
     time.sleep(5)
     for theta in range(0, 1):
         rate(10)
 
-        joint2.pos = vector(0, P0_5[2][1][2], P0_5[2][0][2])
+        radian1 = vp.radians(45)
+        radian2 = vp.radians(90)
+        radian3 = vp.radians(135)
 
-        joint3.pos = vector(0, P0_5[3][1][2], P0_5[3][0][2])
+        arm1.rotate(angle=radian1, axis=vector(1, 0, 0))
 
-        effector.pos = vector(0, P0_5[4][1][2], P0_5[4][0][2])
+        arm2.rotate(angle=radian2, axis=vector(1, 0, 0))
+        joint2.pos = vector(0, P0_3[1][2], P0_3[0][2])
+        arm2.pos = vector(0, P0_3[1][2], P0_3[0][2])
+
+        arm3.rotate(angle=radian3, axis=vector(1, 0, 0))
+        joint3.pos = vector(0, P0_4[1][2], P0_4[0][2])
+        arm3.pos =  vector(0, P0_4[1][2], P0_4[0][2])
+
+        effector.pos = vector(0, P0_5[1][2], P0_5[0][2])
 
     # print(effector.pos)
 
