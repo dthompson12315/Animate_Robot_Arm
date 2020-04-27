@@ -9,6 +9,29 @@ import vpython as vp
 from vpython import canvas, vector, color, box, sphere, rate, norm, cylinder
 import time
 import numpy as np
+from scipy.spatial.transform import Rotation as R
+
+
+# pass in theta between two frames in degrees, and length of arm between the frames
+def createAdjacentTx_Ty(theta, length):
+    # used roatation matrix for clockwise rotations
+    Tx_Ty = np.array([[np.cos(theta), -np.sin(theta), 0],
+                      [np.sin(theta), np.cos(theta), length],
+                      [0, 0, 1]])
+    return Tx_Ty
+
+
+def end_effector(P0_P1, P1_P2, P2_P3, P3_P4, P4_P5):
+    T0_2 = np.matmul(P0_P1, P1_P2)
+    T0_3 = np.matmul(T0_2, P2_P3)
+    T0_4 = np.matmul(T0_3, P3_P4)
+    T0_5 = np.matmul(T0_4, P4_P5)
+
+    return P0_P1, T0_2, T0_3, T0_4, T0_5
+
+
+def posCal(start, offset):
+    return start + vector(offset[0],offset[1],offset[2])
 
 
 def main():
@@ -29,7 +52,7 @@ def main():
                     height=900,
                     center=zero,
                     background=color.gray(.2),
-                    forward=vector(0.5, -2, 0),
+                    forward=vector(0, -2, -5),
                     fov=70)
 
     floor = box(pos=vector(0, 0, 0),
@@ -41,31 +64,35 @@ def main():
                     color=color.red,
                     radius=3,
                     length=5)
+    # vector(0, arm3.pos.y + arm3.length, 0)
 
-    joint1 = sphere(pos=vector(0, base.pos.y + base.length + 1, 0), radius=2.9,
+    joint1 = sphere(pos=posCal(base.pos,[0,base.length + 1,0]),
+                    radius=2.9,
                     color=color.white)
-    arm1 = cylinder(axis=vector(0, 1, 0), pos=vector(0, joint1.pos.y, 0), color=color.red,
+    arm1 = cylinder(axis=vector(0, 1, 0),
+                    pos=joint1.pos,
+                    color=color.red,
                     length=10 + joint1.radius)
 
-    joint2 = sphere(pos=vector(0, arm1.pos.y + arm1.length, 0),
+    joint2 = sphere(pos=posCal(arm1.pos,[0,arm1.length,0]),
                     radius=1.5,
                     color=color.white)
 
     arm2 = cylinder(axis=vector(0, 1, 0),
-                    pos=vector(0, joint2.pos.y, 0),
+                    pos=joint2.pos,
                     color=color.red,
                     length=5 + joint2.radius)
 
-    joint3 = sphere(pos=vector(0, arm2.pos.y + arm2.length, 0),
+    joint3 = sphere(pos=posCal(arm2.pos,[0,arm2.length,0]),
                     radius=1.5,
                     color=color.white)
 
     arm3 = cylinder(axis=vector(0, 1, 0),
-                    pos=vector(0, joint3.pos.y, 0),
+                    pos=joint3.pos,
                     color=color.red,
                     length=5 + joint3.radius)
 
-    effector = sphere(pos=vector(0, arm3.pos.y + arm3.length, 0),
+    effector = sphere(pos=posCal(arm3.pos,[0,arm3.length,0]),
                       radius=0.5,
                       color=color.white # ,
                       # make_trail=True,
@@ -73,59 +100,63 @@ def main():
                       )
 
 
-    P1_P2 = createAdjacentTx_Ty(vp.radians(90), base.length + 1)
-    P2_P3 = createAdjacentTx_Ty(vp.radians(-45), arm1.length)
-    P3_P4 = createAdjacentTx_Ty(vp.radians(45), arm2.length)
+    P1_P2 = createAdjacentTx_Ty(vp.radians(-45), base.length + 1)
+    P2_P3 = createAdjacentTx_Ty(vp.radians(0), arm1.length)
+    P3_P4 = createAdjacentTx_Ty(vp.radians(0), arm2.length)
     P4_P5 = createAdjacentTx_Ty(vp.radians(0), arm3.length)
 
     P0_1, P0_2, P0_3, P0_4, P0_5 = end_effector(P0_P1, P1_P2, P2_P3, P3_P4, P4_P5)
 
+    r1 = R.from_matrix([[1,0,0],
+                        [0,P0_P1[0][0],P0_P1[0][1]],
+                        [0,P0_P1[1][0],P0_P1[1][1]]])
+    r2 = R.from_matrix([[1,0,0],
+                        [0,P1_P2[0][0],P1_P2[0][1]],
+                        [0,P1_P2[1][0],P1_P2[1][1]]])
+    r3 = R.from_matrix([[1,0,0],
+                        [0,P2_P3[0][0],P2_P3[0][1]],
+                        [0,P2_P3[1][0],P2_P3[1][1]]])
+    r4 = R.from_matrix([[1,0,0],
+                        [0,P3_P4[0][0],P3_P4[0][1]],
+                        [0,P3_P4[1][0],P3_P4[1][1]]])
+    r5 = R.from_matrix([[1,0,0],
+                        [0,P4_P5[0][0],P4_P5[0][1]],
+                        [0,P4_P5[1][0],P4_P5[1][1]]])
+
+    print(P1_P2[:2,:2])
+    print(r1.as_euler('zyx', degrees=True))
+    print(r2.as_euler('zyx', degrees=True))
+    print(r3.as_euler('zyx', degrees=True))
+    print(r4.as_euler('zyx', degrees=True))
+    print(r5.as_euler('zyx', degrees=True))
 
     time.sleep(5)
     for theta in range(0, 1):
         rate(10)
 
-        ang1 = 90
-        ang2 = ang1 - 45
-        ang3 = ang2 + 45
+        ang1 = -45
+        ang2 = ang1 - 0
+        ang3 = ang2 + 0
 
         radian1 = vp.radians(ang1)
         radian2 = vp.radians(ang2)
         radian3 = vp.radians(ang3)
 
-        arm1.rotate(angle=radian1, axis=vector(1, 0, 0))
-
-        arm2.rotate(angle=radian2, axis=vector(1, 0, 0))
-        joint2.pos = vector(0, P0_3[1][2], P0_3[0][2])
-        arm2.pos = vector(0, P0_3[1][2], P0_3[0][2])
-
-        arm3.rotate(angle=radian3, axis=vector(1, 0, 0))
-        joint3.pos = vector(0, P0_4[1][2], P0_4[0][2])
-        arm3.pos =  vector(0, P0_4[1][2], P0_4[0][2])
-
-        effector.pos = vector(0, P0_5[1][2], P0_5[0][2])
+        # arm1.rotate(angle=radian1, axis=vector(0, 0, 1))
+        arm1.axis = vector(P0_3[0][2], P0_3[1][2] - 6.3, 0)
 
 
+        arm2.rotate(angle=radian2, axis=vector(0, 0, 1))
+        joint2.pos = vector(P0_3[0][2], P0_3[1][2], 0)
+        arm2.pos = joint2.pos
 
-# pass in theta between two frames in degrees, and length of arm between the frames
-def createAdjacentTx_Ty(theta, length):
-    # used roatation matrix for clockwise rotations
-    Tx_Ty = np.array([[np.cos(theta), np.sin(theta), 0],
-                      [-np.sin(theta), np.cos(theta), length],
-                      [0, 0, 1]])
-    return Tx_Ty
+        arm3.rotate(angle=radian3, axis=vector(0, 0, 1))
+        joint3.pos = vector( P0_4[0][2], P0_4[1][2],0)
+        arm3.pos =  joint3.pos
 
-
-def end_effector(P0_P1, P1_P2, P2_P3, P3_P4, P4_P5):
-    T0_2 = np.matmul(P0_P1, P1_P2)
-    T0_3 = np.matmul(T0_2, P2_P3)
-    T0_4 = np.matmul(T0_3, P3_P4)
-    T0_5 = np.matmul(T0_4, P4_P5)
-
-    return [P0_P1, T0_2, T0_3, T0_4, T0_5]
+        effector.pos = vector(P0_5[0][2], P0_5[1][2], 0)
 
 
 if __name__ == '__main__':
     main()
-
 
