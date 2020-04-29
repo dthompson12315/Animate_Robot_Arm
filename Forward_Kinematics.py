@@ -15,9 +15,10 @@ from scipy.spatial.transform import Rotation as R
 # pass in theta between two frames in degrees, and length of arm between the frames
 def createAdjacentTx_Ty(theta, length):
     # used roatation matrix for clockwise rotations
-    Tx_Ty = np.array([[np.cos(theta), -np.sin(theta), 0],
-                      [np.sin(theta), np.cos(theta), length],
-                      [0, 0, 1]])
+    Tx_Ty = np.array([[np.cos(theta), -np.sin(theta), 0, 0],
+                      [np.sin(theta), np.cos(theta), 0, length],
+                      [0, 0, 1, 0],
+                      [0, 0, 0, 1]])
     return Tx_Ty
 
 
@@ -43,9 +44,10 @@ def main():
 
     # transformation matric between frames 0 and 1.
     # hardcoded beacuse it is the only transformation with an x translation
-    P0_P1 = np.array([[1, 0, 0],
-                      [0, 1, 0.3],
-                      [0, 0, 1]])
+    P0_P1 = np.array([[1, 0, 0, 0],
+                      [0, 1, 0, 0.3],
+                      [0, 0, 1, 0],
+                      [0, 0, 0, 1]])
 
     scene2 = canvas(title='Collision Avoidance',
                     width=1800,
@@ -64,7 +66,6 @@ def main():
                     color=color.red,
                     radius=3,
                     length=5)
-    # vector(0, arm3.pos.y + arm3.length, 0)
 
     joint1 = sphere(pos=posCal(base.pos,[0,base.length + 1,0]),
                     radius=2.9,
@@ -101,60 +102,51 @@ def main():
 
 
     P1_P2 = createAdjacentTx_Ty(vp.radians(-45), base.length + 1)
-    P2_P3 = createAdjacentTx_Ty(vp.radians(0), arm1.length)
-    P3_P4 = createAdjacentTx_Ty(vp.radians(0), arm2.length)
+    P2_P3 = createAdjacentTx_Ty(vp.radians(90), arm1.length)
+    P3_P4 = createAdjacentTx_Ty(vp.radians(-45), arm2.length)
     P4_P5 = createAdjacentTx_Ty(vp.radians(0), arm3.length)
 
     P0_1, P0_2, P0_3, P0_4, P0_5 = end_effector(P0_P1, P1_P2, P2_P3, P3_P4, P4_P5)
 
-    r1 = R.from_matrix([[1,0,0],
-                        [0,P0_P1[0][0],P0_P1[0][1]],
-                        [0,P0_P1[1][0],P0_P1[1][1]]])
-    r2 = R.from_matrix([[1,0,0],
-                        [0,P1_P2[0][0],P1_P2[0][1]],
-                        [0,P1_P2[1][0],P1_P2[1][1]]])
-    r3 = R.from_matrix([[1,0,0],
-                        [0,P2_P3[0][0],P2_P3[0][1]],
-                        [0,P2_P3[1][0],P2_P3[1][1]]])
-    r4 = R.from_matrix([[1,0,0],
-                        [0,P3_P4[0][0],P3_P4[0][1]],
-                        [0,P3_P4[1][0],P3_P4[1][1]]])
-    r5 = R.from_matrix([[1,0,0],
-                        [0,P4_P5[0][0],P4_P5[0][1]],
-                        [0,P4_P5[1][0],P4_P5[1][1]]])
+    r1 = R.from_matrix(P0_1[:3,:3])
+    r2 = R.from_matrix(P0_2[:3,:3])
+    r3 = R.from_matrix(P0_3[:3,:3])
+    r4 = R.from_matrix(P0_4[:3,:3])
+    r5 = R.from_matrix(P0_5[:3,:3])
 
-    print(P1_P2[:2,:2])
+    # print(P1_P2[:3,:3])
     print(r1.as_euler('zyx', degrees=True))
     print(r2.as_euler('zyx', degrees=True))
     print(r3.as_euler('zyx', degrees=True))
     print(r4.as_euler('zyx', degrees=True))
     print(r5.as_euler('zyx', degrees=True))
 
+    bR = r1.as_euler('zyx', degrees=True)
+    a1R = r2.as_euler('zyx', degrees=True)
+    a2R = r3.as_euler('zyx', degrees=True)
+    a3R = r4.as_euler('zyx', degrees=True)
+    eR = r5.as_euler('zyx', degrees=True)
+
     time.sleep(5)
     for theta in range(0, 1):
         rate(10)
 
-        ang1 = -45
-        ang2 = ang1 - 0
-        ang3 = ang2 + 0
+        a1RX = vp.radians(a1R[0])
+        a2RX = vp.radians(a2R[0])
+        a3RX = vp.radians(a3R[0])
 
-        radian1 = vp.radians(ang1)
-        radian2 = vp.radians(ang2)
-        radian3 = vp.radians(ang3)
+        arm1.rotate(angle=a1RX, axis=vector(0, 0, 1))
 
-        # arm1.rotate(angle=radian1, axis=vector(0, 0, 1))
-        arm1.axis = vector(P0_3[0][2], P0_3[1][2] - 6.3, 0)
-
-
-        arm2.rotate(angle=radian2, axis=vector(0, 0, 1))
-        joint2.pos = vector(P0_3[0][2], P0_3[1][2], 0)
+        joint2.pos = arm1.pos + arm1.axis
+        arm2.rotate(angle=a2RX, axis=vector(0, 0, 1))
         arm2.pos = joint2.pos
 
-        arm3.rotate(angle=radian3, axis=vector(0, 0, 1))
-        joint3.pos = vector( P0_4[0][2], P0_4[1][2],0)
+
+        joint3.pos = arm2.pos + arm2.axis
+        arm3.rotate(angle=a3RX, axis=vector(0, 0, 1))
         arm3.pos =  joint3.pos
 
-        effector.pos = vector(P0_5[0][2], P0_5[1][2], 0)
+        effector.pos = arm3.pos + arm3.axis
 
 
 if __name__ == '__main__':
