@@ -17,51 +17,51 @@ start = vector(-side, 1, -side)
 end = vector(side, 1, side)
 zero = vector(0,20, 0)
 
-# scene2 = canvas(title='Collision Avoidance',
-#                     width=1800,
-#                     height=900,
-#                     center=zero,
-#                     background=color.gray(.2),
-#                     forward=vector(0.5,-2,0),
-#                     fov=70)
+scene2 = canvas(title='Collision Avoidance',
+                    width=1800,
+                    height=900,
+                    center=zero,
+                    background=color.gray(.2),
+                    forward=vector(5,-2,0),
+                    fov=70)
 
-# floor = box(pos=vector(0, 0, 0),
-#             size=vector(s3, thk, s3),
-#             color=color.gray(1))
+floor = box(pos=vector(0, 0, 0),
+            size=vector(s3, thk, s3),
+            color=color.gray(1))
 
-# base = cylinder(axis=vector(0,1,0),
-#                 pos=vector(0, thk, 0),
-#                 color=color.red,
-#                 radius=3,
-#                 length=5)
+base = cylinder(axis=vector(0,1,0),
+                pos=vector(0, thk, 0),
+                color=color.red,
+                radius=3,
+                length=5)
 
-# joint1 = sphere(pos=vector(0, base.pos.y  + base.length + 1,0), radius=2.9, color=color.white)
-# arm1 = cylinder(axis=vector(0,1,0), pos=vector(0,joint1.pos.y, 0), color=color.red,
-#                 length=10 + joint1.radius)
+joint1 = sphere(pos=vector(0, base.pos.y  + base.length + 1,0), radius=2.9, color=color.white)
+arm1 = cylinder(axis=vector(0,1,0), pos=vector(0,joint1.pos.y, 0), color=color.red,
+                length=10 + joint1.radius)
 
-# joint2 = sphere(pos=vector(0,arm1.pos.y + arm1.length,0),
-#                 radius=1.5,
-#                 color=color.white)
+joint2 = sphere(pos=vector(0,arm1.pos.y + arm1.length,0),
+                radius=1.5,
+                color=color.white)
 
-# arm2 = cylinder(axis=vector(0,1,0),
-#                 pos=vector(0,joint2.pos.y,0),
-#                 color=color.red,
-#                 length=5 + joint2.radius)
+arm2 = cylinder(axis=vector(0,1,0),
+                pos=vector(0,joint2.pos.y,0),
+                color=color.red,
+                length=5 + joint2.radius)
 
-# joint3 = sphere(pos=vector(0,arm2.pos.y + arm2.length,0),
-#                 radius=1.5,
-#                 color=color.white)
+joint3 = sphere(pos=vector(0,arm2.pos.y + arm2.length,0),
+                radius=1.5,
+                color=color.white)
     
-# arm3 = cylinder(axis=vector(0,1,0),
-#                 pos=vector(0,joint3.pos.y,0),
-#                 color=color.red,
-#                 length=5 + joint3.radius)
+arm3 = cylinder(axis=vector(0,1,0),
+                pos=vector(0,joint3.pos.y,0),
+                color=color.red,
+                length=5 + joint3.radius)
 
-# effector = sphere(pos=vector(0,arm3.pos.y + arm3.length,0),
-#                 radius=0.5,
-#                 color=color.white,
-#                 make_trail=True,
-#                 retain=400)
+effector = sphere(pos=vector(0,arm3.pos.y + arm3.length,0),
+                radius=0.5,
+                color=color.white,
+                make_trail=True,
+                retain=400)
 
 #transformation matric between frames 0 and 1.
 #hardcoded beacuse it is the only transformation with an x translation
@@ -81,15 +81,15 @@ def createAdjacentTx_Ty(theta, length):
 def end_effector(angles):
     Ts = []
 
-    # P1_P2 = createAdjacentTx_Ty(vp.radians(angles[0]), base.length + 1)
-    # P2_P3 = createAdjacentTx_Ty(vp.radians(angles[1]), arm1.length)
-    # P3_P4 = createAdjacentTx_Ty(vp.radians(angles[2]), arm2.length)
-    # P4_P5 = createAdjacentTx_Ty(vp.radians(0), arm3.length)
+    P1_P2 = createAdjacentTx_Ty(vp.radians(angles[0]), base.length + 1)
+    P2_P3 = createAdjacentTx_Ty(vp.radians(angles[1]), arm1.length)
+    P3_P4 = createAdjacentTx_Ty(vp.radians(angles[2]), arm2.length)
+    P4_P5 = createAdjacentTx_Ty(vp.radians(0), arm3.length)
 
-    P1_P2 = createAdjacentTx_Ty(vp.radians(angles[0]), 6)
-    P2_P3 = createAdjacentTx_Ty(vp.radians(angles[1]), 12.9)
-    P3_P4 = createAdjacentTx_Ty(vp.radians(angles[2]), 6.5)
-    P4_P5 = createAdjacentTx_Ty(vp.radians(0), 6.5)
+    # P1_P2 = createAdjacentTx_Ty(vp.radians(angles[0]), 6)
+    # P2_P3 = createAdjacentTx_Ty(vp.radians(angles[1]), 12.9)
+    # P3_P4 = createAdjacentTx_Ty(vp.radians(angles[2]), 6.5)
+    # P4_P5 = createAdjacentTx_Ty(vp.radians(0), 6.5)
 
     Ts.append(P0_P1)
     Ts.append(P1_P2)
@@ -134,6 +134,7 @@ def gradient_descent(g, obstacles, angles, ranges, alpha=0.5):
     e = end_effector(angles)
     iters = 0
     while True:
+        # time.sleep(0.5)
         angle1_plus = (angles[0] + alpha) 
         angle2_plus = (angles[1] + alpha) 
         angle3_plus = (angles[2] + alpha) 
@@ -163,18 +164,48 @@ def gradient_descent(g, obstacles, angles, ranges, alpha=0.5):
         opt_combo = combos[costs.index(min(costs))]
         #print(opt_combo)
         angles = opt_combo
+
+        # print(angles)
+
+
         # consider it a success when cost is less than 0.3
         # also break after 1000 iters, in case cost never gets lower than the threshold
         if min(costs) < 0.3 or iters > 1000:
             break
         iters += 1
-    print(iters)
-    print(end_effector(opt_combo))
+
+    # print(angles)
+    time.sleep(5)
+    dt = 0.01
+    for theta in range(0, 100):
+        rate(20)
+        angl = angles[0]
+        ang2 = angl + angles[1]
+        ang3 = ang2 + angles[2]
+
+        arm1.rotate(angle=vp.radians(angl*dt), axis=vector(1, 0, 0))
+        joint2.pos = arm1.axis + arm1.pos
+
+        arm2.pos = joint2.pos
+        arm2.rotate(angle=vp.radians(ang2*dt), axis=vector(1, 0, 0))
+
+        joint3.pos = arm2.axis + arm2.pos
+        arm3.pos = joint3.pos
+
+        arm3.rotate(angle=vp.radians(ang3*dt), axis=vector(1, 0, 0))
+        effector.pos = arm3.axis + arm3.pos
+    # print(effector.pos)
+    # print(iters)
+    # print(end_effector(opt_combo))
 
 rangess = [[-90, 90],
           [-90, 90],
           [-90, 90]]
-gradient_descent([4.52548, 26.5179], [], [0, 0, 0], rangess)       
+
+xPos = 25.9
+yPos = 6.3
+sphere(pos=vector(0, yPos,xPos), radius=1, color=color.green)
+gradient_descent([xPos, yPos], [], [0, 0, 0], rangess)
 
 # def main():
 #     # degree = 0
