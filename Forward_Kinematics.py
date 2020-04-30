@@ -13,11 +13,11 @@ from scipy.spatial.transform import Rotation as R
 
 
 # pass in theta between two frames in degrees, and length of arm between the frames
-def createAdjacentTx_Ty(theta, length):
+def createAdjacentTx_Ty(thetaX, thetaZ,length):
     # used roatation matrix for clockwise rotations
-    Tx_Ty = np.array([[np.cos(theta), -np.sin(theta), 0, 0],
-                      [np.sin(theta), np.cos(theta), 0, length],
-                      [0, 0, 1, 0],
+    Tx_Ty = np.array([[np.cos(thetaX), -np.sin(thetaX), np.sin(thetaX)*np.sin(thetaZ), 0],
+                      [np.sin(thetaX), np.cos(thetaX)*np.cos(thetaZ), -np.cos(thetaX)*np.sin(thetaZ), length],
+                      [0, np.sin(thetaZ), np.cos(thetaZ), 0],
                       [0, 0, 0, 1]])
     return Tx_Ty
 
@@ -101,10 +101,10 @@ def main():
                       )
 
 
-    P1_P2 = createAdjacentTx_Ty(vp.radians(-45), base.length + 1)
-    P2_P3 = createAdjacentTx_Ty(vp.radians(90), arm1.length)
-    P3_P4 = createAdjacentTx_Ty(vp.radians(-45), arm2.length)
-    P4_P5 = createAdjacentTx_Ty(vp.radians(0), arm3.length)
+    P1_P2 = createAdjacentTx_Ty(vp.radians(-45), vp.radians(0), base.length + 1)
+    P2_P3 = createAdjacentTx_Ty(vp.radians(90), vp.radians(0), arm1.length)
+    P3_P4 = createAdjacentTx_Ty(vp.radians(-45), vp.radians(0), arm2.length)
+    P4_P5 = createAdjacentTx_Ty(vp.radians(0), vp.radians(0), arm3.length)
 
     P0_1, P0_2, P0_3, P0_4, P0_5 = end_effector(P0_P1, P1_P2, P2_P3, P3_P4, P4_P5)
 
@@ -132,20 +132,29 @@ def main():
     for theta in range(0, 100):
         rate(20)
 
-        a1RX = vp.radians(a1R[0]*dt)
-        a2RX = vp.radians(a2R[0]*dt)
-        a3RX = vp.radians(a3R[0]*dt)
+        # a1RX = vp.radians(a1R[0]*dt)
+        # a2RX = vp.radians(a2R[0]*dt)
+        # a3RX = vp.radians(a3R[0]*dt)
 
-        arm1.rotate(angle=a1RX, axis=vector(0, 0, 1))
+        arm1.rotate(angle=vp.radians(a1R[0]*dt), axis=vector(0, 0, 1))
+        arm1.rotate(angle=vp.radians(a1R[1]*dt), axis=vector(0, 1, 0))
+        arm1.rotate(angle=vp.radians(a1R[2]*dt), axis=vector(1, 0, 0))
 
         joint2.pos = arm1.pos + arm1.axis
-        arm2.rotate(angle=a2RX, axis=vector(0, 0, 1))
         arm2.pos = joint2.pos
+
+        arm2.rotate(angle=vp.radians(a2R[0]*dt), axis=vector(0, 0, 1))
+        arm2.rotate(angle=vp.radians(a2R[1]*dt), axis=vector(0, 1, 0))
+        arm2.rotate(angle=vp.radians(a2R[2]*dt), axis=vector(1, 0, 0))
 
 
         joint3.pos = arm2.pos + arm2.axis
-        arm3.rotate(angle=a3RX, axis=vector(0, 0, 1))
         arm3.pos =  joint3.pos
+
+        arm3.rotate(angle=vp.radians(a3R[0]*dt), axis=vector(0, 0, 1))
+        arm3.rotate(angle=vp.radians(a3R[1]*dt), axis=vector(0, 1, 0))
+        arm3.rotate(angle=vp.radians(a3R[2]*dt), axis=vector(1, 0, 0))
+
 
         effector.pos = arm3.pos + arm3.axis
 
