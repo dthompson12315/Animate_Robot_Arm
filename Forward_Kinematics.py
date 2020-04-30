@@ -63,12 +63,71 @@ effector = sphere(pos=vector(0,arm3.pos.y + arm3.length,0),
                 make_trail=True,
                 retain=400)
 
-
 #transformation matric between frames 0 and 1.
 #hardcoded beacuse it is the only transformation with an x translation
 P0_P1 = np.array([[1, 0, 0],
                   [0, 1, 0.3],
                   [0, 0, 1]])
+
+
+
+    #pass in theta between two frames in degrees, and length of arm between the frames
+def createAdjacentTx_Ty(theta, length):
+    Tx_Ty = np.array([[np.cos(theta), -np.sin(theta), 0],
+                      [np.sin(theta), np.cos(theta), length],
+                      [0, 0, 1]])
+    return Tx_Ty
+
+def end_effector(angles):
+    Ts = []
+
+    P1_P2 = createAdjacentTx_Ty(vp.radians(angles[0]), base.length + 1)
+    P2_P3 = createAdjacentTx_Ty(vp.radians(angles[1]), arm1.length)
+    P3_P4 = createAdjacentTx_Ty(vp.radians(angles[2]), arm2.length)
+    P4_P5 = createAdjacentTx_Ty(vp.radians(0), arm3.length)
+
+    Ts.append(P0_P1)
+    Ts.append(P1_P2)
+    Ts.append(P2_P3)
+    Ts.append(P3_P4)
+    Ts.append(P4_P5)
+
+    T0_2 = np.matmul(Ts[0], Ts[1])
+    T0_3 = np.matmul(T0_2, Ts[2])
+    T0_4 = np.matmul(T0_3, Ts[3])
+    T0_5 = np.matmul(T0_4, Ts[4])
+
+    return (T0_5[0][2], T0_5[1][2])
+
+def cost(g, obstacles, angles, ranges):
+    e = end_effector(angles)
+    goal_attraction = abs(e - g)
+    obstacle_avoidance_penalty = 0
+    for obs in obstacles:
+        obstacle_avoidance_penalty += obsAvoidanceCost(abs(e - obs[0]), obs[1])
+    joint_range_penalty = 0
+    for i in range(len(angles)):
+        joint_range_penalty += jointRangeCost(angles[i], ranges[i])
+
+    return goal_attraction + obstacle_avoidance_penalty + joint_range_penalty
+
+def obsAvoidanceCost(d, R):
+    if d > 0 and d <= R:
+        return np.log(R/d)
+    elif d > R:
+        return 0
+
+def jointRangeCost(angle, range, dist_to_hurt = 15):
+    if range[0] < angle and angle <= range[1] + dist_to_hurt:
+        return np.log(dist_to_hurt / (angle - range[0]))
+    elif range[0] + dist_to_hurt < angle and angle < range[1] - dist_to_hurt:
+        return 0
+    else:
+        return np.log(dist_to_hurt / (range[1] - angle))
+    
+def gradient_descent(g, obstacles, angles, ranges, alpha=0.25):
+
+
 
 def main():
     # degree = 0
@@ -132,65 +191,6 @@ def main():
     #     #
     #     # degree = degree + 1
     #     # time.sleep(1)
-
-    #pass in theta between two frames in degrees, and length of arm between the frames
-def createAdjacentTx_Ty(theta, length):
-    Tx_Ty = np.array([[np.cos(theta), -np.sin(theta), 0],
-                      [np.sin(theta), np.cos(theta), length],
-                      [0, 0, 1]])
-    return Tx_Ty
-
-def end_effector(angles):
-    Ts = []
-
-    P1_P2 = createAdjacentTx_Ty(vp.radians(angles[0]), base.length + 1)
-    P2_P3 = createAdjacentTx_Ty(vp.radians(angles[1]), arm1.length)
-    P3_P4 = createAdjacentTx_Ty(vp.radians(angles[2]), arm2.length)
-    P4_P5 = createAdjacentTx_Ty(vp.radians(0), arm3.length)
-
-    Ts.append(P0_P1)
-    Ts.append(P1_P2)
-    Ts.append(P2_P3)
-    Ts.append(P3_P4)
-    Ts.append(P4_P5)
-
-    T0_2 = np.matmul(Ts[0], Ts[1])
-    T0_3 = np.matmul(T0_2, Ts[2])
-    T0_4 = np.matmul(T0_3, Ts[3])
-    T0_5 = np.matmul(T0_4, Ts[4])
-
-    return (T0_5[0][2], T0_5[1][2])
-
-def cost(g, obstacles, angles, ranges):
-    e = end_effector(angles)
-    goal_attraction = abs(e - g)
-    obstacle_avoidance_penalty = 0
-    for obs in obstacles:
-        obstacle_avoidance_penalty += obsAvoidanceCost(abs(e - obs[0]), obs[1])
-    joint_range_penalty = 0
-    for i in range(len(angles)):
-        joint_range_penalty += jointRangeCost(angles[i], ranges[i])
-
-    return goal_attraction + obstacle_avoidance_penalty + joint_range_penalty
-
-def obsAvoidanceCost(d, R):
-    if d > 0 and d <= R:
-        return np.log(R/d)
-    elif d > R:
-        return 0
-
-def jointRangeCost(angle, range, dist_to_hurt = 15):
-    if range[0] < angle and angle <= range[1] + dist_to_hurt:
-        return np.log(dist_to_hurt / (angle - range[0]))
-    elif range[0] + dist_to_hurt < angle and angle < range[1] - dist_to_hurt:
-        return 0
-    else:
-        return np.log(dist_to_hurt / (range[1] - angle))
-    
-#def gradient_descent(e, g, obstacles, angles, ranges, alpha=0.25):
-
-
-
 
 if __name__ == '__main__':
     main()
