@@ -159,12 +159,13 @@ def gradient_descent(g, obstacles, angles, ranges, alpha=0.5):
                  cost(end_effector(combos[5]), g, obstacles, combos[5], ranges),
                  cost(end_effector(combos[6]), g, obstacles, combos[6], ranges),
                  cost(end_effector(combos[7]), g, obstacles, combos[7], ranges)]
-        print(costs)
+        #print(costs)
         opt_combo = combos[costs.index(min(costs))]
         #print(opt_combo)
         angles = opt_combo
-        # consider it a success when cost is less than 0.5
-        if min(costs) < 0.3:
+        # consider it a success when cost is less than 0.3
+        # also break after 1000 iters, in case cost never gets lower than the threshold
+        if min(costs) < 0.3 or iters > 1000:
             break
         iters += 1
     print(iters)
