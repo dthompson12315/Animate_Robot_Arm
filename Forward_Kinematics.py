@@ -63,15 +63,15 @@ effector = sphere(pos=vector(0,arm3.pos.y + arm3.length,0),
                 make_trail=True,
                 retain=400)
 
-#transformation matric between frames 0 and 1.
-#hardcoded beacuse it is the only transformation with an x translation
+# transformation matric between frames 0 and 1.
+# hardcoded beacuse it is the only transformation with an x translation
 P0_P1 = np.array([[1, 0, 0],
                   [0, 1, 0.3],
                   [0, 0, 1]])
 
 
 
-    #pass in theta between two frames in degrees, and length of arm between the frames
+# pass in theta between two frames in degrees, and length of arm between the frames
 def createAdjacentTx_Ty(theta, length):
     Tx_Ty = np.array([[np.cos(theta), np.sin(theta), 0],
                       [-np.sin(theta), np.cos(theta), length],
@@ -85,11 +85,6 @@ def end_effector(angles):
     P2_P3 = createAdjacentTx_Ty(vp.radians(angles[1]), arm1.length)
     P3_P4 = createAdjacentTx_Ty(vp.radians(angles[2]), arm2.length)
     P4_P5 = createAdjacentTx_Ty(vp.radians(0), arm3.length)
-
-    # P1_P2 = createAdjacentTx_Ty(vp.radians(angles[0]), 6)
-    # P2_P3 = createAdjacentTx_Ty(vp.radians(angles[1]), 12.9)
-    # P3_P4 = createAdjacentTx_Ty(vp.radians(angles[2]), 6.5)
-    # P4_P5 = createAdjacentTx_Ty(vp.radians(0), 6.5)
 
     Ts.append(P0_P1)
     Ts.append(P1_P2)
@@ -108,7 +103,7 @@ def cost(e, g, obstacles, angles, ranges):
     goal_attraction = abs(np.linalg.norm(np.array(e) - np.array(g)))
     obstacle_avoidance_penalty = 0
     for obs in obstacles:
-        obstacle_avoidance_penalty += obsAvoidanceCost(abs(e - obs[0]), obs[1])
+        obstacle_avoidance_penalty += obsAvoidanceCost(abs(np.linalg.norm(np.array(e) - np.array(obs[0]))), obs[1] + 1)
     joint_range_penalty = 0
     for i in range(len(angles)):
         joint_range_penalty += jointRangeCost(angles[i], ranges[i])
@@ -118,7 +113,7 @@ def cost(e, g, obstacles, angles, ranges):
 
 def obsAvoidanceCost(d, R):
     if d > 0 and d <= R:
-        return np.log(R/d)
+        return np.log(R/d) * 40
     elif d > R:
         return 0
 
@@ -198,79 +193,16 @@ def gradient_descent(g, obstacles, angles, ranges, alpha=0.5):
     # print(iters)
     # print(end_effector(opt_combo))
 
-rangess = [[-90, 90],
+ranges = [[-90, 90],
           [-90, 90],
           [-90, 90]]
+obstacles = [[(14, 30), 2]]
 
 xPos = 25.9
 yPos = 6.3
 sphere(pos=vector(0, yPos,xPos), radius=1, color=color.green)
-gradient_descent([xPos, yPos], [], [0, 0, 0], rangess)
+sphere(pos=vector(0, 30, 14), radius=2, color=color.magenta)
+gradient_descent([xPos, yPos], obstacles, [0, 0, 0], ranges)
 
-# def main():
-#     # degree = 0
-#     # reachedEnd = False
-
-#     # Ts = []
-#     # P1_P2 = createAdjacentTx_Ty(vp.radians(90), base.length + 1)
-#     # P2_P3 = createAdjacentTx_Ty(vp.radians(45), arm1.length)
-#     # P3_P4 = createAdjacentTx_Ty(vp.radians(0), arm2.length)
-#     # P4_P5 = createAdjacentTx_Ty(vp.radians(0), arm3.length)
-
-#     # Ts.append(P0_P1)
-#     # Ts.append(P1_P2)
-#     # Ts.append(P2_P3)
-#     # Ts.append(P3_P4)
-#     # Ts.append(P4_P5)
-
-#     # P0_5 = end_effector(Ts)
-    
-#     # print(P0_5)
-
-
-#     for theta in range(0,90):
-#         rate(5)
-#         degree1 = 1
-#         degree2 = 0
-#         degree3 = 0
-
-#         theta1 = degree1
-#         theta2 = theta1 + degree2
-#         theta3 = theta2 + degree3
-
-
-#         radian1 = vp.radians(theta1)
-#         radian2 = vp.radians(theta2)
-#         radian3 = vp.radians(theta3)
-
-
-#         arm1.rotate(angle=radian1, axis=vector(1, 0, 0))
-#         joint2.pos = arm1.axis + arm1.pos
-
-#         arm2.pos = joint2.pos
-#         arm2.rotate(angle=radian2, axis=vector(1, 0, 0))
-
-#         joint3.pos = arm2.axis + arm2.pos
-#         arm3.pos = joint3.pos
-
-#         arm3.rotate(angle=radian3, axis=vector(1, 0, 0))
-#         effector.pos = arm3.axis + arm3.pos
-        
-#     print(effector.pos)
-    
-#     # while not reachedEnd:
-#     #     rate(1)
-#     #     #
-#     #     #
-#     #     # radian = vp.radians(degree)
-#     #     # print(radian)
-#     #     #
-#     #     # arm2.rotate(angle=radian, axis=vector(1,0,0))
-#     #     #
-#     #     # degree = degree + 1
-#     #     # time.sleep(1)
-
-# #if __name__ == '__main__':
-# #    main()
 
 
