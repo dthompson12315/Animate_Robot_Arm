@@ -2,7 +2,7 @@
     Brandon Sawyer and Dylan Thompson
     CSE 4280
     Forward Kinematics
-    02/02/2018
+    04/30/2020
 """
 
 import vpython as vp
@@ -115,11 +115,11 @@ def main():
     r5 = R.from_matrix(P0_5[:3,:3])
 
     # print(P1_P2[:3,:3])
-    print(r1.as_euler('zyx', degrees=True))
+    # print(r1.as_euler('zyx', degrees=True))
     print(r2.as_euler('zyx', degrees=True))
     print(r3.as_euler('zyx', degrees=True))
     print(r4.as_euler('zyx', degrees=True))
-    print(r5.as_euler('zyx', degrees=True))
+    # print(r5.as_euler('zyx', degrees=True))
 
     bR = r1.as_euler('zyx', degrees=True)
     a1R = r2.as_euler('zyx', degrees=True)
@@ -128,12 +128,13 @@ def main():
     eR = r5.as_euler('zyx', degrees=True)
 
     time.sleep(5)
-    for theta in range(0, 1):
-        rate(10)
+    dt = 0.01
+    for theta in range(0, 100):
+        rate(20)
 
-        a1RX = vp.radians(a1R[0])
-        a2RX = vp.radians(a2R[0])
-        a3RX = vp.radians(a3R[0])
+        a1RX = vp.radians(a1R[0]*dt)
+        a2RX = vp.radians(a2R[0]*dt)
+        a3RX = vp.radians(a3R[0]*dt)
 
         arm1.rotate(angle=a1RX, axis=vector(0, 0, 1))
 
