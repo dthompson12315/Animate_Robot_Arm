@@ -99,11 +99,12 @@ def end_effector(angles):
 
     return [T0_5[0][2], T0_5[1][2]]
 
+
 def cost(e, g, obstacles, angles, ranges):
     goal_attraction = abs(np.linalg.norm(np.array(e) - np.array(g)))
     obstacle_avoidance_penalty = 0
     for obs in obstacles:
-        obstacle_avoidance_penalty += obsAvoidanceCost(abs(np.linalg.norm(np.array(e) - np.array(obs[0]))), obs[1] + 1)
+        obstacle_avoidance_penalty += obsAvoidanceCost(abs(np.linalg.norm(np.array(e) - np.array(obs[0]))), obs[1] + 2)
     joint_range_penalty = 0
     for i in range(len(angles)):
         joint_range_penalty += jointRangeCost(angles[i], ranges[i])
@@ -111,23 +112,27 @@ def cost(e, g, obstacles, angles, ranges):
     #print(joint_range_penalty)
     return goal_attraction + obstacle_avoidance_penalty + joint_range_penalty
 
+
 def obsAvoidanceCost(d, R):
-    if d > 0 and d <= R:
-        return np.log(R/d) * 40
-    elif d > R:
+    if 0 < d <= R:
+        return np.log(R/d) * 100000
+    else:
         return 0
 
+
 def jointRangeCost(angle, range, dist_to_hurt = 45):
-    if range[0] < angle and angle <= range[0] + dist_to_hurt:
+    if range[0] < angle <= range[0] + dist_to_hurt:
         return np.log(dist_to_hurt / (angle - range[0]))
-    elif range[0] + dist_to_hurt < angle and angle < range[1] - dist_to_hurt:
+    elif range[0] + dist_to_hurt < angle < range[1] - dist_to_hurt:
         return 0
-    elif range[1] - dist_to_hurt <= angle and angle < range[1]:
+    elif range[1] - dist_to_hurt <= angle < range[1]:
         return np.log(dist_to_hurt / (range[1] - angle))
-    
-def gradient_descent(g, obstacles, angles, ranges, alpha=0.5):
+
+
+def gradient_descent(g, obstacles, angles, ranges, alpha=0.1):
     e = end_effector(angles)
     iters = 0
+    prev_costs = [1, 1, 1, 1]
     while True:
         # time.sleep(0.5)
         angle1_plus = (angles[0] + alpha) 
@@ -156,7 +161,15 @@ def gradient_descent(g, obstacles, angles, ranges, alpha=0.5):
                  cost(end_effector(combos[6]), g, obstacles, combos[6], ranges),
                  cost(end_effector(combos[7]), g, obstacles, combos[7], ranges)]
         #print(costs)
+
+        if min(costs) in prev_costs:
+            for cos in prev_costs:
+                if cos in costs:
+                    costs.remove(min(costs))
+            print(costs)
+
         opt_combo = combos[costs.index(min(costs))]
+        prev_costs[iters % 4] = min(costs)
         #print(opt_combo)
         angles = opt_combo
 
@@ -165,7 +178,8 @@ def gradient_descent(g, obstacles, angles, ranges, alpha=0.5):
 
         # consider it a success when cost is less than 0.3
         # also break after 1000 iters, in case cost never gets lower than the threshold
-        if min(costs) < 0.3 or iters > 1000:
+        if min(costs) < 0.3 or iters > 10000:
+            print(iters)
             break
         iters += 1
 
@@ -193,6 +207,7 @@ def gradient_descent(g, obstacles, angles, ranges, alpha=0.5):
     # print(iters)
     # print(end_effector(opt_combo))
 
+
 ranges = [[-90, 90],
           [-90, 90],
           [-90, 90]]
@@ -203,6 +218,8 @@ yPos = 6.3
 sphere(pos=vector(0, yPos,xPos), radius=1, color=color.green)
 sphere(pos=vector(0, 30, 14), radius=2, color=color.magenta)
 gradient_descent([xPos, yPos], obstacles, [0, 0, 0], ranges)
+
+
 
 
 
