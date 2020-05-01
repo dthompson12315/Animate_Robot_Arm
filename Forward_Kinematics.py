@@ -1,3 +1,10 @@
+"""
+    Brandon Sawyer and Dylan Thompson
+    CSE 4280
+    Animation Robot Arm Gradient Descent
+    04/30/2020
+"""
+
 import vpython as vp
 from vpython import canvas,vector, color, box, sphere, rate, norm, cylinder
 import random
@@ -162,13 +169,15 @@ def gradient_descent(g, obstacles, angles, ranges, alpha=0.1):
                  cost(end_effector(combos[7]), g, obstacles, combos[7], ranges)]
         #print(costs)
 
+        # Remove previous choices to stop the arm from getting stuck on obstacles
         if min(costs) in prev_costs:
             for cos in prev_costs:
                 if cos in costs:
                     costs.remove(min(costs))
-            print(costs)
 
         opt_combo = combos[costs.index(min(costs))]
+        #print(np.array(opt_combo) - np.array(angles))
+        show_current_iter(np.array(opt_combo) - np.array(angles))
         prev_costs[iters % 4] = min(costs)
         #print(opt_combo)
         angles = opt_combo
@@ -178,35 +187,29 @@ def gradient_descent(g, obstacles, angles, ranges, alpha=0.1):
 
         # consider it a success when cost is less than 0.3
         # also break after 1000 iters, in case cost never gets lower than the threshold
-        if min(costs) < 0.3 or iters > 10000:
+        if min(costs) <= 0.5 or iters > 5000:
             print(iters)
             break
         iters += 1
 
-    # print(angles)
-    time.sleep(5)
-    dt = 0.01
-    for theta in range(0, 100):
-        rate(20)
-        angl = angles[0]
-        ang2 = angl + angles[1]
-        ang3 = ang2 + angles[2]
+# Show the position of the robot arm for the current iteration
+def show_current_iter(steps):
+    time.sleep(0.001)
+    angl = steps[0]
+    ang2 = angl + steps[1]
+    ang3 = ang2 + steps[2]
 
-        arm1.rotate(angle=vp.radians(angl*dt), axis=vector(1, 0, 0))
-        joint2.pos = arm1.axis + arm1.pos
+    arm1.rotate(angle=vp.radians(angl), axis=vector(1, 0, 0))
+    joint2.pos = arm1.axis + arm1.pos
 
-        arm2.pos = joint2.pos
-        arm2.rotate(angle=vp.radians(ang2*dt), axis=vector(1, 0, 0))
+    arm2.pos = joint2.pos
+    arm2.rotate(angle=vp.radians(ang2), axis=vector(1, 0, 0))
 
-        joint3.pos = arm2.axis + arm2.pos
-        arm3.pos = joint3.pos
+    joint3.pos = arm2.axis + arm2.pos
+    arm3.pos = joint3.pos
 
-        arm3.rotate(angle=vp.radians(ang3*dt), axis=vector(1, 0, 0))
-        effector.pos = arm3.axis + arm3.pos
-    # print(effector.pos)
-    # print(iters)
-    # print(end_effector(opt_combo))
-
+    arm3.rotate(angle=vp.radians(ang3), axis=vector(1, 0, 0))
+    effector.pos = arm3.axis + arm3.pos
 
 ranges = [[-90, 90],
           [-90, 90],
